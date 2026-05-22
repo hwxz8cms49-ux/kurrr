@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class _Board : MonoBehaviour
 {
@@ -169,25 +170,73 @@ public class _Board : MonoBehaviour
         List<GameObject> MatchPet1 = CheckMatch(pet1);
         List<GameObject> MatchPet2 = CheckMatch(pet2);
         bool IsBonus = false;
+        int bonusX = 0, bonusY = 0;
 
-        // если сработал бонус
-        if (MatchPet1 != null && (PosPet1.bonus || PosPet2.bonus))
+        if (MatchPet1 != null)
         {
-            DestructionByTheCross(CurrX2,  CurrY2);
-            IsBonus = true;
-        }
-        else if(MatchPet2 != null && (PosPet1.bonus || PosPet2.bonus))
-        {
-            DestructionByTheCross(CurrX1, CurrY1);
-            IsBonus = true;
-        }
-        if (IsBonus)
-        {
+            foreach (GameObject MatchPet in MatchPet1)
+            {
+                _InteractionWithAnimals Coordinate = MatchPet.GetComponent<_InteractionWithAnimals>();
+                if (Coordinate != null && Coordinate.bonus)
+                {
+                    IsBonus = true;
+                    bonusX = Coordinate.x;
+                    bonusY = Coordinate.y;
+                }
+            }
+            if (IsBonus)
+            {
+                DestructionByTheCross(bonusX, bonusY);
+                StartCoroutine(DropAnimals());
+                yield break;
+            }
+            foreach (GameObject MatchPet in MatchPet1)
+            {
+                int x1 = MatchPet.GetComponent<_InteractionWithAnimals>().x;
+                int y1 = MatchPet.GetComponent<_InteractionWithAnimals>().y;
+                if (AllAnimals[x1, y1] != null)
+                {
+                    AllAnimals[x1, y1] = null;
+                    Destroy(MatchPet);
+                    score += 10;
+                }
+            }
+            Score_.text = score.ToString();
             StartCoroutine(DropAnimals());
-            yield break;
         }
-        // если совпадений нет - возвращаем все назад
-        if (MatchPet1 == null && MatchPet2 == null)
+        else if (MatchPet2 != null)
+        {
+            foreach (GameObject MatchPet in MatchPet2)
+            {
+                _InteractionWithAnimals Coordinate = MatchPet.GetComponent<_InteractionWithAnimals>();
+                if (Coordinate != null && Coordinate.bonus)
+                {
+                    IsBonus = true;
+                    bonusX = Coordinate.x;
+                    bonusY = Coordinate.y;
+                }
+            }
+            if (IsBonus)
+            {
+                DestructionByTheCross(bonusX, bonusY);
+                StartCoroutine(DropAnimals());
+                yield break;
+            }
+            foreach (GameObject MatchPet in MatchPet2)
+            {
+                int x2 = MatchPet.GetComponent<_InteractionWithAnimals>().x;
+                int y2 = MatchPet.GetComponent<_InteractionWithAnimals>().y;
+                if (AllAnimals[x2, y2] != null)
+                {
+                    AllAnimals[x2, y2] = null;
+                    Destroy(MatchPet);
+                    score += 10;
+                }
+            }
+            Score_.text = score.ToString();
+            StartCoroutine(DropAnimals());
+        }
+        else
         {
             yield return new WaitForSeconds(0.5f);
             AllAnimals[CurrX1, CurrY1] = pet1;
@@ -196,38 +245,9 @@ public class _Board : MonoBehaviour
             PosPet2.x = CurrX2;
             PosPet1.y = CurrY1;
             PosPet2.y = CurrY2;
-
             pet1.GetComponent<RectTransform>().anchoredPosition = new Vector2(CurrX1 * spacingX - offsetX, CurrY1 * spacingY - offsetY);
             pet2.GetComponent<RectTransform>().anchoredPosition = new Vector2(CurrX2 * spacingX - offsetX, CurrY2 * spacingY - offsetY);
         }
-        else if (MatchPet1 != null)
-        {
-            foreach (GameObject MatchPet in MatchPet1)
-            {
-                int x1 = MatchPet.GetComponent<_InteractionWithAnimals>().x;
-                int y1 = MatchPet.GetComponent<_InteractionWithAnimals>().y;
-                AllAnimals[x1, y1] = null;
-                Destroy(MatchPet);
-                score += 10;
-                Score_.text = score.ToString();
-            }
-            StartCoroutine(DropAnimals());
-        }
-
-        else if (MatchPet2 != null)
-        {
-            foreach (GameObject MatchPet in MatchPet2)
-            {
-                int x2 = MatchPet.GetComponent<_InteractionWithAnimals>().x;
-                int y2 = MatchPet.GetComponent<_InteractionWithAnimals>().y;
-                AllAnimals[x2, y2] = null;
-                Destroy(MatchPet);
-                score += 10;
-                Score_.text = score.ToString();
-            }
-            StartCoroutine(DropAnimals());
-        }
-
         yield return null;
     }
     // поиск три в ряд 
