@@ -8,21 +8,43 @@ public class _InteractionWithAnimals : MonoBehaviour, IPointerDownHandler, IPoin
     public int y;
     public bool bonus = false;
 
-    private Image _image;
+    private Outline useoutline;
 
-    private void Awake()
+    void Awake()
     {
-        _image = GetComponent<Image>();
+        useoutline = GetComponent<Outline>();
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        FindFirstObjectByType<_Board>().SelectAnimal(gameObject);
+        GameObject BoardObject = GameObject.Find("_Board");
+        if (BoardObject != null)
+        {
+            _Board BoardScript = BoardObject.GetComponent<_Board>();
+            if (BoardScript != null)
+            {
+                BoardScript.SelectAnimal(gameObject);
+            }
+        }
         transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         transform.localScale = new Vector3(1f, 1f, 1f); 
+    }
+    public void OnOutline()
+    {
+        if (useoutline != null)
+        {
+            useoutline.enabled = true;
+        }
+    }
+    public void OffOutline()
+    {
+        if (useoutline != null)
+        {
+            useoutline.enabled = false;
+        }
     }
 }
